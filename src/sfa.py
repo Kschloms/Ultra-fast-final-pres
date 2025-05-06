@@ -25,16 +25,14 @@ class Laser:
         envelope[(t >= 0) & (t <= self.pulse_duration)] = (np.sin(np.pi * t[(t >= 0) & (t <= self.pulse_duration)] / self.pulse_duration)) ** 2
         return envelope
     
-    def plot_envelope(self, t: np.ndarray) -> None:
+    def plot_envelope(self, ax: plt.axes, t: np.ndarray) -> None:
         envelope = self._envelope(t)
-        plt.figure(figsize=(10, 6))
-        plt.plot(t, envelope, label='Envelope', color='blue')
-        plt.title(f"Envelope of {self.name} Laser Pulse")
-        plt.xlabel("Time (fs)")
-        plt.ylabel("Amplitude (a.u.)")
-        plt.legend()
-        plt.grid()
-        plt.show()
+        ax.plot(t, envelope, label='Envelope', color='blue')
+        ax.set_title(f"Envelope of {self.name} Laser Pulse")
+        ax.set_xlabel("Time (fs)")
+        ax.set_ylabel("Amplitude (a.u.)")
+        ax.legend()
+        ax.grid()
 
     def A(self, t, phase: float = np.pi) -> np.ndarray:
         A_0 = np.sqrt(self.intensity_au) / self.frequency_au
@@ -43,18 +41,16 @@ class Laser:
         A_z = A_0 * self._envelope(t) * np.cos(self.frequency_au * t + phase) / np.sqrt(1 - self.epsilon**2)
         return np.array([A_x, A_y, A_z])
 
-    def plot_electric_field(self, phase: float = 0.0) -> None:
-        t = np.linspace(-self.pulse_duration, self.pulse_duration, 1000)
+    def plot_electric_field(self, ax: plt.axes, phase: float = 0.0) -> None:
+        t = np.linspace(0, self.pulse_duration, 1000)
         A = self.A(t, phase)
-        plt.figure(figsize=(10, 6))
-        plt.plot(t, A[1], label='Electric Field (y-component)', color='blue')
-        plt.plot(t, A[2], label='Electric Field (z-component)', color='red')
-        plt.title(f"Electric Field of {self.name} Laser Pulse")
-        plt.xlabel("Time (fs)")
-        plt.ylabel("Electric Field (a.u.)")
-        plt.legend()
-        plt.grid()
-        plt.show()
+        ax.plot(t, A[1], label='Electric Field (y-component)', color='blue')
+        ax.plot(t, A[2], label='Electric Field (z-component)', color='red')
+        ax.set_title(f"Electric Field of {self.name} Laser Pulse")
+        ax.set_xlabel("Time (a.u.)")
+        ax.set_ylabel("Electric Field (a.u.)")
+        ax.legend()
+        ax.grid()
 
     
 
