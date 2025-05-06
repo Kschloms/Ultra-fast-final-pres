@@ -21,6 +21,7 @@ class Laser:
     
     def _envelope(self, t: np.ndarray) -> np.ndarray:
         # Sin^2 envelope function for the laser pulse
+        # Sin² envelope function for the laser pulse
         envelope = np.zeros_like(t)
         envelope[(t >= 0) & (t <= self.pulse_duration)] = (np.sin(np.pi * t[(t >= 0) & (t <= self.pulse_duration)] / self.pulse_duration)) ** 2
         return envelope
