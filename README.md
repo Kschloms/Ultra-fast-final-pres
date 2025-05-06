@@ -2,7 +2,8 @@ REMEMBER to work in a different branch than main and then send a pull request in
 
 TO CREATE CONDA ENV WITH ALL DEPENDENCIES:
 create a folder in your repository called "env"
-use 'conda env create -f environment.yml -p INSERT_PATH_TO_REPO\env
+use 'conda env create -f environment.yml -p INSERT_PATH_TO_REPO/env' (on Unix-based systems)
+or 'conda env create -f environment.yml -p INSERT_PATH_TO_REPO\env' (on Windows)
 
 Possible Values for laser:
 Laser freq ~ 800nm; 1.57 eV = w_L = 0.057 au

@@ -20,7 +20,7 @@ class Laser:
     
     
     def _envelope(self, t: np.ndarray) -> np.ndarray:
-        # Gaussian envelope function for the laser pulse
+        # Sin^2 envelope function for the laser pulse
         envelope = np.zeros_like(t)
         envelope[(t >= 0) & (t <= self.pulse_duration)] = (np.sin(np.pi * t[(t >= 0) & (t <= self.pulse_duration)] / self.pulse_duration)) ** 2
         return envelope
@@ -37,8 +37,8 @@ class Laser:
     def A(self, t, phase: float = np.pi) -> np.ndarray:
         A_0 = np.sqrt(self.intensity_au) / self.frequency_au
         A_x = np.zeros_like(t)  # x-component is zero for linearly polarized light
-        A_y = A_0 * self._envelope(t) * self.epsilon * np.sin(self.frequency_au * t + phase) / np.sqrt(1 - self.epsilon**2)
-        A_z = A_0 * self._envelope(t) * np.cos(self.frequency_au * t + phase) / np.sqrt(1 - self.epsilon**2)
+        A_y = A_0 * self._envelope(t) * self.epsilon * np.sin(self.frequency_au * t + phase) / np.sqrt(1 + self.epsilon**2)
+        A_z = A_0 * self._envelope(t) * np.cos(self.frequency_au * t + phase) / np.sqrt(1 + self.epsilon**2)
         return np.array([A_x, A_y, A_z])
 
     def plot_electric_field(self, ax: plt.axes, phase: float = 0.0) -> None:
