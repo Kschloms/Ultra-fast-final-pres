@@ -1,6 +1,6 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
+import scipy as sp
 
 class Laser:
     def __init__(self, name: str, wavelength: float, intensity: float, num_cycles_in_pulse: float, polarization : float = 0.0):
@@ -56,9 +56,35 @@ class Laser:
     
 
 class Photo_Electron:
-    def __init__(self, energy: float, momentum: float):
+    def __init__(self, energy: float, k_x, k_y, k_z):
         self.energy = energy  # in eV
-        self.momentum = momentum  # in kg*m/s
+        self.k = np.array([k_x, k_y, k_z])
 
     def __str__(self):
         return f"Photoelectron: {self.energy} eV, {self.momentum} kg*m/s"
+
+class SFA:
+    def __init__(self, laser: Laser, photoelectrons: np.array):
+        self.laser = laser
+        self.photoelectrons = photoelectrons
+        self.ks = np.array([pe.k for pe in photoelectrons])
+
+    def __str__(self):
+        return f"SFA with {self.laser} and {self.photoelectrons}"    
+
+    def ground_state_wf(self, k) -> np.ndarray:
+        # Ground state wave function in momentum space (Gaussian)
+        return np.exp(-k**2 / 2)  # Normalized Gaussian wave function
+
+    def ground_state_energy(self, k) -> float:
+        # Ground state energy in atomic units (1 a.u. = 27.2114 eV)
+        return k**2 / 2
+    
+    def M_SFA_VG(self) -> float:
+        t = self.laser.pulse_duration
+        # Define the integrand function for the M matrix element
+        def integrand(t: float) -> float:
+            self.laser.A(t) * np.exp(1j * sp.integrate.cumulative_trapz((self.ks + self.laser.A(t))**2 / 2 - 1j *self.ground_state_energy(self.ks)*(t), t))
+        
+        M = -1j * self.ground_state_wf(self.ks) * (self.ks*integrand(t))
+        return M
