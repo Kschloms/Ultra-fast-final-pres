@@ -17,6 +17,7 @@ class M:
     def __init__(self,Nc,eps,phi,wl,I,E0):
         self.T = Nc*2*np.pi/wl
         self.A0 = np.sqrt(I)/wl
+        
         self.eps = eps
         self.wl = wl
         self.phi = phi
@@ -49,6 +50,10 @@ class M:
     def Mk0_squared(self,k):
         return np.real(np.vdot(self.Mk0(k),self.Mk0(k)))
 
+# %%
+
+# %%
+
 #%%
 
 #Field parameters
@@ -67,3 +72,6 @@ M1 = M(Nc,eps,phi,wl,I,E0)
 for k in np.linspace(0,1,num=50):
     print(M1.Mk0_squared([0,0,k]))
 
+
+
+# %%
