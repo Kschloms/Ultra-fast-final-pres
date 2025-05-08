@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy as sp
+import scipy
+from scipy import integrate
 
 class Laser:
     def __init__(self, name: str, wavelength: float, intensity: float, num_cycles_in_pulse: float, polarization : float = 0.0):
@@ -64,15 +65,18 @@ class Photo_Electron:
         return f"Photoelectron: {self.energy} eV, {self.momentum} kg*m/s"
 
 class SFA:
-    def __init__(self, laser: Laser, photoelectrons: np.array):
+    def __init__(self, laser: Laser, ks : np.array, photoelectrons: np.array = None):
         self.laser = laser
         self.photoelectrons = photoelectrons
-        self.ks = np.array([pe.k for pe in photoelectrons])
+        if photoelectrons is not None:
+            self.ks = np.array([pe.k for pe in photoelectrons])
+        else:
+            self.ks = ks
 
     def __str__(self):
         return f"SFA with {self.laser} and {self.photoelectrons}"    
 
-    def ground_state_wf(self, k) -> np.ndarray:
+    def ground_state_wf(self, k) -> np.array:
         # Ground state wave function in momentum space (Gaussian)
         return np.exp(-k**2 / 2)  # Normalized Gaussian wave function
 
@@ -80,11 +84,42 @@ class SFA:
         # Ground state energy in atomic units (1 a.u. = 27.2114 eV)
         return k**2 / 2
     
-    def M_SFA_VG(self) -> float:
-        t = self.laser.pulse_duration
-        # Define the integrand function for the M matrix element
-        def integrand(t: float) -> float:
-            self.laser.A(t) * np.exp(1j * sp.integrate.cumulative_trapz((self.ks + self.laser.A(t))**2 / 2 - 1j *self.ground_state_energy(self.ks)*(t), t))
+    @property
+    def M_SFA_VG(self) -> np.array:
+        # Create a time array for the integration
+        t_arr = np.linspace(0, self.laser.pulse_duration, 1000)
+        dt = t_arr[1] - t_arr[0]
+        # Initialize result array with the same shape as k_y/k_z grid
+        M_vals = np.zeros_like(self.ks[1], dtype=complex)
         
-        M = -1j * self.ground_state_wf(self.ks) * (self.ks*integrand(t))
-        return M
+        # Process each k point in the grid
+        for i in range(self.ks[1].shape[0]):
+            for j in range(self.ks[1].shape[1]):
+                k = np.array([self.ks[0][i,j], self.ks[1][i,j], self.ks[2][i,j]])
+                k_norm = np.linalg.norm(k)
+                
+                # Define the integrand function for numerical integration
+                def integrand(t):
+                    A_t = self.laser.A(np.array([t]))
+                    A_t = A_t.reshape(3)
+                    exponent = 1j * ((k + A_t)**2 / 2 - 1j * self.ground_state_energy(k_norm)) * t
+                    print(exponent)
+                    return np.dot(k, A_t) * np.exp(exponent)
+                
+                # Integrate over time
+                result, _ = integrate.quad(integrand, 0, self.laser.pulse_duration, limit=1000, complex_func=True)
+                
+                M_vals[i, j] = -1j * self.ground_state_wf(k) * result 
+        return M_vals
+    
+    def plot_dP_dk(self, ax):
+        dP_dk = np.abs(self.M_SFA_VG) **2
+
+        fig = ax.get_figure()
+        fig.set_size_inches(8, 6)
+        # Using k_y and k_z for plotting since k_x is all zeros
+        contour = ax.contourf(self.ks[1], self.ks[2], dP_dk, levels=50, cmap='viridis')
+        fig.colorbar(contour, ax=ax, label='dP/dk')
+        ax.set_title('Differential Probability Distribution')
+        ax.set_xlabel('k_y')
+        ax.set_ylabel('k_z')
