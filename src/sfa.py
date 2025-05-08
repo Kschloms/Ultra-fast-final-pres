@@ -101,13 +101,15 @@ class SFA:
                 # Define the integrand function for numerical integration
                 def integrand(t):
                     A_t = self.laser.A(np.array([t]))
+                    print(A_t)
                     A_t = A_t.reshape(3)
+                    
                     exponent = 1j * ((k + A_t)**2 / 2 - 1j * self.ground_state_energy(k_norm)) * t
-                    print(exponent)
                     return np.dot(k, A_t) * np.exp(exponent)
                 
                 # Integrate over time
                 result, _ = integrate.quad(integrand, 0, self.laser.pulse_duration, limit=1000, complex_func=True)
+                print(result)
                 
                 M_vals[i, j] = -1j * self.ground_state_wf(k) * result 
         return M_vals
