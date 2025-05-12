@@ -101,7 +101,7 @@ class SFA:
                 # Define the integrand function for numerical integration
                 def integrand(t):
                     A_t = self.laser.A(t)
-                    print(A_t)
+                    logging.debug(f"A_t: {A_t}")
                     A_t = A_t.reshape(3)
                     
                     exponent = 1j * (np.dot(k + A_t, k + A_t) / 2 - 1j * self.ground_state_energy(k_norm)) * t
