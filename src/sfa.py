@@ -104,7 +104,7 @@ class SFA:
                     print(A_t)
                     A_t = A_t.reshape(3)
                     
-                    exponent = 1j * ((k + A_t)**2 / 2 - 1j * self.ground_state_energy(k_norm)) * t
+                    exponent = 1j * (np.dot(k + A_t, k + A_t) / 2 - 1j * self.ground_state_energy(k_norm)) * t
                     return np.dot(k, A_t) * np.exp(exponent)
                 
                 # Integrate over time
