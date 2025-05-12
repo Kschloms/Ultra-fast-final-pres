@@ -100,7 +100,7 @@ class SFA:
                 
                 # Define the integrand function for numerical integration
                 def integrand(t):
-                    A_t = self.laser.A(np.array([t]))
+                    A_t = self.laser.A(t)
                     print(A_t)
                     A_t = A_t.reshape(3)
                     
