@@ -5,13 +5,13 @@ class M_torch:
     def __init__(self, Nc, eps, phi, wl, I, E0, res, device='cpu'):
         self.device = device
         print(f"Using device: {self.device}")
-        self.T = Nc * 2 * torch.pi / wl
+        self.T = Nc * 2.0 * torch.pi / wl
         self.A0 = torch.sqrt(torch.tensor(I, device=device)) / wl
         self.eps = eps
         self.wl = wl
         self.phi = phi
         self.E0 = E0
-        self.ts = torch.linspace(0, self.T, steps=res, device=device)
+        self.ts = torch.linspace(0.0, self.T, steps=res, device=device)
         vector = torch.stack([
             torch.zeros_like(self.ts),
             self.eps * torch.sin(self.wl * self.ts + self.phi),
