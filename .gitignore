@@ -2,3 +2,4 @@ env/
 .conda
 .venv/
 __pycache__/
+env_ultra_fast/
