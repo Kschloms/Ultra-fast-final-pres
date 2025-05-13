@@ -24,7 +24,7 @@ class M_torch:
         k_mag = torch.norm(k, dim=-1)
         return 2 * torch.sqrt(torch.tensor(2.0, device=self.device)) / torch.pi * (1 / (k_mag ** 2 + 1) ** 2)
 
-    def exp_integrand(self, k):
+    def exp_integrand(self, k, E_0_term):
         # k: (N, 3)
         # As: (3, T)
         # We want to broadcast k to (N, T, 3)
@@ -33,19 +33,23 @@ class M_torch:
         k_expanded = k[:, None, :]  # (N, 1, 3)
         AsT = self.As.T[None, :, :]  # (1, T, 3)
         kA = k_expanded + AsT  # (N, T, 3)
-        return 1j * 0.5 * torch.sum(kA * kA, dim=-1)  # (N, T)
+        return 1j * (0.5 * torch.sum(kA * kA, dim=-1) - E_0_term)  # (N, T)
 
     def exp_integral(self, k):
         # k: (N, 3)
-        exp_ys = self.exp_integrand(k)  # (N, T)
+        E0_term = 1j * self.E0 * self.ts  # (T,)
+
+        exp_ys = self.exp_integrand(k, E0_term)  # (N, T)
         dt = self.ts[1] - self.ts[0]
         # Cumulative sum for integration
 
-        # integral = torch.cumulative_trapezoid(exp_ys, self.ts, dim=-1)  # (N, T)
-        integral = torch.cumsum(exp_ys, dim=-1) * dt  # (N, T)
+        integral = torch.cumulative_trapezoid(exp_ys, self.ts, dim=-1)
+        # Prepend a zero along the integration axis to match SciPy's 'initial=0'
+        pad_shape = list(integral.shape)
+        pad_shape[-1] = 1
+        integral = torch.cat([torch.zeros(pad_shape, dtype=integral.dtype, device=integral.device), integral], dim=-1)
         # Subtract 1j * E0 * t for each t
-        E0_term = 1j * self.E0 * self.ts  # (T,)
-        result = torch.exp(integral - E0_term)
+        result = torch.exp(integral)
         return result  # (N, T)
 
     def integrands(self, k):
@@ -63,11 +67,9 @@ class M_torch:
     def integral(self, k):
         # k: (N, 3)
         ys = self.integrands(k)  # (N, 3, T)
-        dt = self.ts[1] - self.ts[0]
-        # Integrate over T (time axis)
-        integral_vec = torch.trapz(ys, self.ts, dim=-1)  # (N, 3)
-        # Dot product for each k: sum over last dim
-        result = torch.sum(k * integral_vec, dim=-1)  # (N,)
+        integral_vec = torch.trapz(ys, self.ts, dim=-1)  # (N, 3), likely complex
+        # Ensure k is the same dtype as integral_vec
+        result = torch.einsum('ij,ij->i', k.to(integral_vec.dtype), integral_vec)  # (N,)
         return result
 
     def Mk0(self, k_values):
