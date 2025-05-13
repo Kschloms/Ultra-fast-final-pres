@@ -69,7 +69,8 @@ class M_torch:
         ys = self.integrands(k)  # (N, 3, T)
         integral_vec = torch.trapz(ys, self.ts, dim=-1)  # (N, 3), likely complex
         # Ensure k is the same dtype as integral_vec
-        result = torch.einsum('ij,ij->i', k.to(integral_vec.dtype), integral_vec)  # (N,)
+        # result = torch.einsum('ij,ij->i', k.to(integral_vec.dtype), integral_vec)  # (N,)
+        result = torch.sum(k * integral_vec, dim=-1)
         return result
 
     def Mk0(self, k_values):
@@ -81,4 +82,6 @@ class M_torch:
 
     def Mk0_squared(self, k_values):
         Mk0s = self.Mk0(k_values)
+        #normalize Mk0s
+        Mk0s = Mk0s / torch.norm(Mk0s, dim=0)
         return Mk0s.abs() ** 2
