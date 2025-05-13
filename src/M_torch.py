@@ -1,5 +1,5 @@
 import torch
-
+import numpy as np
 
 class M_torch:
     def __init__(self, Nc, eps, phi, wl, I, E0, res, device='cpu'):
@@ -40,6 +40,8 @@ class M_torch:
         exp_ys = self.exp_integrand(k)  # (N, T)
         dt = self.ts[1] - self.ts[0]
         # Cumulative sum for integration
+
+        # integral = torch.cumulative_trapezoid(exp_ys, self.ts, dim=-1)  # (N, T)
         integral = torch.cumsum(exp_ys, dim=-1) * dt  # (N, T)
         # Subtract 1j * E0 * t for each t
         E0_term = 1j * self.E0 * self.ts  # (T,)
@@ -77,4 +79,4 @@ class M_torch:
 
     def Mk0_squared(self, k_values):
         Mk0s = self.Mk0(k_values)
-        return torch.abs(Mk0s) ** 2
+        return Mk0s.abs() ** 2
