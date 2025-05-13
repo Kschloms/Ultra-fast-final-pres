@@ -19,6 +19,8 @@ class M_torch:
         ])
         self.As = (torch.sin(torch.pi * self.ts / self.T) ** 2) * self.A0 / torch.sqrt(torch.tensor(1 + self.eps ** 2, device=device, dtype=torch.float32)) * vector
 
+    def get_A(self):
+        return self.As
     def f_phi_0(self, k):
         # k: (N, 3)
         k_mag = torch.norm(k, dim=-1)
