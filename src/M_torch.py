@@ -33,7 +33,7 @@ class M_torch:
         k_expanded = k[:, None, :]  # (N, 1, 3)
         AsT = self.As.T[None, :, :]  # (1, T, 3)
         kA = k_expanded + AsT  # (N, T, 3)
-        return 0.5 * torch.sum(kA * kA, dim=-1)  # (N, T)
+        return 1j * 0.5 * torch.sum(kA * kA, dim=-1)  # (N, T)
 
     def exp_integral(self, k):
         # k: (N, 3)
